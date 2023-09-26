@@ -50,3 +50,47 @@ class MyDataset(Dataset):
 
         return out
 
+
+class ToTensor(object):
+    def __call__(self, data):
+        image, label = data['images'], data['label']
+
+        image = image.transpose((2, 0, 1)).astype(np.float32)
+        label = label.transpose((2, 0, 1)).astype(np.float32)
+
+        data = {'image':torch.from_numpy(image), 'label':torch.from_numpy(label)}
+
+        return data
+
+
+class Normalization(object):
+    def __init__(self, mean=0.5, std=0.5):
+        self.mean = mean
+        self.std = std
+    
+    def __call__(self, data):
+        image, label = data['images'], data['labels']
+
+        image = (image - self.mean) / self.std
+        label = (label - self.mean) / self.std
+
+        data = {'image':image, 'label':label}
+
+        return data
+
+
+class RandomFlip(object):
+    def __call__(self, data):
+        image, label = data['images'], data['labels']
+
+        if np.random.rand() > 0.5:
+            image = np.fliplr(image)
+            label = np.fliplr(label)
+
+        if np.random.rand() > 0.5:
+            image = np.flipud(image)
+            label = np.flipud(label)
+
+        data = {'image':image, 'label':label}
+
+        return data
