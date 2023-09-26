@@ -53,7 +53,7 @@ class MyDataset(Dataset):
 
 class ToTensor(object):
     def __call__(self, data):
-        image, label = data['images'], data['label']
+        image, label = data['image'], data['label']
 
         image = image.transpose((2, 0, 1)).astype(np.float32)
         label = label.transpose((2, 0, 1)).astype(np.float32)
@@ -81,7 +81,7 @@ class Normalization(object):
 
 class RandomFlip(object):
     def __call__(self, data):
-        image, label = data['images'], data['labels']
+        image, label = data['image'], data['label']
 
         if np.random.rand() > 0.5:
             image = np.fliplr(image)
