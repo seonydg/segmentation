@@ -59,7 +59,7 @@ class UNET(nn.Module):
         self.dec1_1 = CBR2d(in_channels=64, out_channels=64)
 
         #output
-        self.fc = nn.Conv2d(in_channels=64, out_channels=2, kernel_size=1, stride=1, padding=0, bias=True)
+        self.fc = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=1, stride=1, padding=0, bias=True)
     
 
     def forward(self, x):

@@ -26,11 +26,9 @@ class MyDataset(Dataset):
         self.data_images = data_images
         self.data_labels = data_labels
 
-
     def __len__(self):
         return len(self.data_labels)
     
-
     def __getitem__(self, index):
         images = np.load(os.path.join(self.data_dir, self.phase, self.data_images[index]))
         labels = np.load(os.path.join(self.data_dir, self.phase, self.data_labels[index]))
@@ -94,3 +92,5 @@ class RandomFlip(object):
         data = {'image':image, 'label':label}
 
         return data
+
+
