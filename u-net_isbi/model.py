@@ -90,7 +90,7 @@ class UNET(nn.Module):
         dec4_2 = self.dec4_2(cat4)
         dec4_1 = self.dec4_1(dec4_2)
 
-        unpool3 = self.unpool4(dec4_1)
+        unpool3 = self.unpool3(dec4_1)
         cat3 = torch.cat((enc3_2, unpool3), dim=1)
         dec3_2 = self.dec3_2(cat3)
         dec3_1 = self.dec3_1(dec3_2)
@@ -100,7 +100,7 @@ class UNET(nn.Module):
         dec2_2 = self.dec2_2(cat2)
         dec2_1 = self.dec2_1(dec2_2)
 
-        unpool1 = self.unpool4(dec2_1)
+        unpool1 = self.unpool1(dec2_1)
         cat1 = torch.cat((enc1_2, unpool1), dim=1)
         dec1_2 = self.dec1_2(cat1)
         dec1_1 = self.dec1_1(dec1_2)
