@@ -3,6 +3,7 @@
 1. u-net
 1.1 u-net
 1.2 u-net transfer
+2. Mask R-CNN
 
    
 ---
@@ -50,3 +51,42 @@ Warping Error는 객체들의 분할 및 병합이 잘 되었는지 확인하는
 
 ![image](https://github.com/seonydg/segmentation/assets/85072322/5616dc2b-408e-4a7b-a2b2-eeaee718eb6f)
 
+
+---
+# 2. Mask R-CNN
+# Mask R-CNN(ICCV 2017)
+
+R-CNN의 마지막 논문으로, 기존의 classification, object detection과는 다른 task를 수행한다. Semantic Segmentation은 클래스별로 영역을 필셀별로 구분하는데, 같은 클래스는 같은 영역으로 되어 있는 반면, Instance Segmentation은 클래스별로도, 즉 하나의 객체당 Segmentation를 구별을 한다.
+바운딩 박스 정보를 같이 이용하면 클래스별로 구별하여 Instance Segmentation을 수행하게 된다.
+
+![](https://velog.velcdn.com/images/seonydg/post/68101410-f579-4a9a-8764-16a563942efa/image.png)
+
+
+구현은 간단하게 진행이 되는데, Faster R-CNN을 backbone을 활용하여 7×7 레졸루션을 늘이고 채널을 줄여나간다. 마지막 레이어의 80은 coco dataset의 클래스 수를 의미한다.
+3가지 class, box, mask를 수행한다.
+
+![](https://velog.velcdn.com/images/seonydg/post/820b74d2-4c44-4c82-90fe-95201643ac59/image.png)
+
+
+ROIPooling의 경우 기존의 feature map에 있는 값을 그대로 가져온 반면, ROIAlign은 feature map의 필셀별로 딱 맞는 것이 아닌 소수점도 허용한다. 해당 ROI window에 있는 필셀의 위치 좌표를 이용해서 주변에 있는 feature map의 픽셀 값들도 참조해서 값을 정한다.
+
+![](https://velog.velcdn.com/images/seonydg/post/0e57187e-7316-4624-afd3-88f2fb77c75d/image.png)
+
+
+결과들을 보면, 성능이 좋다.
+
+
+![](https://velog.velcdn.com/images/seonydg/post/b2b80c8a-fca3-4aba-83fd-8b9b6706f6d3/image.png)
+
+
+![](https://velog.velcdn.com/images/seonydg/post/af6e1add-bece-483b-ae12-08d57e79f243/image.png)
+
+
+softmax와 sigmoid를 사용했을 때, 바운딩 박스의 탐지가 더 올라가는 점은 흥미롭다.
+
+![](https://velog.velcdn.com/images/seonydg/post/ea5b7179-aee8-4dd7-8e89-1bf3cfdf547b/image.png)
+
+
+object detection에서 Faster R-CNN에 RoIAlign을 적용하면 Mask R-CNN과 아키텍쳐는 같지만, Mask R-CNN의 성능이 더 좋은 이유는 multi-task learning을 진행하면 성능이 더 올라간다고 논문에서는 주장하고 있다.
+
+![](https://velog.velcdn.com/images/seonydg/post/c2e5c3b0-8051-4be5-9c5b-6c02098b686a/image.png)
