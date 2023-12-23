@@ -1,10 +1,11 @@
 # segmentation
 
-1. u-net
-1.1 u-net
-1.2 u-net transfer
-2. Mask R-CNN
-3. DeepLabV3Plus
+1. U-Net
+1.1 U-Net
+1.2 U-Net transfer
+2. U-Net++
+3. Mask R-CNN
+4. DeepLabV3Plus
 
    
 ---
@@ -54,7 +55,73 @@ Warping Error는 객체들의 분할 및 병합이 잘 되었는지 확인하는
 
 
 ---
-# 2. Mask R-CNN
+# 2. U-Net++
+# U-Net++
+
+
+## U-Net
+
+U-Net은 아키텍쳐 모양이 'U'자형으로 되어 있어 붙여진 이름이다.
+기존 CNN은 input image의 레졸루션을 줄여가며 연산을 수행한 반면, U-Net은 레졸루션을 기존처럼 줄여가며 컨볼루션 연산을 수행하고 그 다음에는 2배씩 레졸루션을 키워가며 컨볼루션 연산을 수행한다.
+그리고 down sampling때의 같은 레졸루션 크기를 갖는 feature map를 up sampling때의 feature map과 합치는 연산을 수행한다.
+하이 레벨의 정보와 로우 레벨 정보를 함께 보존하면서 출력을 학습할 수 있도록 구성이 되어 있다.
+
+![](https://velog.velcdn.com/images/seonydg/post/fb4b2382-35e9-4a32-bbc1-70479a23c223/image.png)
+
+
+## U-Net++
+
+**U-Net ++**의 원문은 **A Nested U-Net Architecture for Medical Image Segmentation**이다.
+
+잠시 DenseNet(CVPR 2017)을 잠시 보면 아래의 그림과 같이, Input부터 다음 블럭'들'로 skip connection을 각각 넘겨준다. 그 다음 블럭에서 다음 블럭'들'로 다시 skip connection을 각각 넘겨주고 이 전체를 댄스 블럭 하나로, 이런 식으로 댄스 블럭 몇 개를 쌓는 구조로 만들어진다.
+
+![](https://velog.velcdn.com/images/seonydg/post/3aff08c7-9330-42d6-9c5d-ebe4aa189def/image.png)
+
+아래의 그림은 **U-Net ++** 아키텍처다.
+검정색으로 된 것이 기존의 U-Net 아키텍처이고, 녹색 Convolution과 다운 샘플링 과정 각각에서 업 샘플링하는 녹색과 파란색의 skip connection이 합쳐지는 Convolution이 추가 되었고 각각의 제일 윗 단에서 Loss가 계산되는 것이 추가가 된 형태로 아키텍처가 구성되어 있다.
+그리고 DenseNet과 같이 같은 레졸루션을 가지는 Convolution'들'에 skip-connection을 넘겨준다.
+Convolution X에서 앞자리는 다운 샘플링을 하면 순서이고 뒷자리는 업 샘플링의 순서를 말한다.
+
+제일 윗단만 보면 Dense block과 똑같은 형태를 띄고 있는데, 추가적으로 각각의 Convolution에 업 셈플링된 Convolution이 Skip_connection이 추가로 합처진다.
+그래서 제일 오른쪽 부분을 제외하더라도 나머지 부분들이 U-Net 아키텍처가 되는 것처럼 구성이 되어 있다.
+
+![](https://velog.velcdn.com/images/seonydg/post/26b634a6-4c03-4e06-9a71-76dbd6d4b34a/image.png)
+
+**U-Net ++** 윗단을 다시 살펴보면, H가 Convolution이고 H(X0, 1)은 H(X0, 0)과 업 샘플링 된 U(X1, 0)이 합쳐지는 식으로 구성되어 있다.
+
+![](https://velog.velcdn.com/images/seonydg/post/e3d83fbf-10eb-4def-84ec-29c007ecefd5/image.png)
+
+해당 논문에서는 이러한 아키텍처의 구성을 잘 살리기 위해서 Deep supervision이라고 하는 Loss를 추가를 한다. 래의 그림과 같이 제일 오른쪽 업 샘플링단을 없애더라도 결과가 도출이 될 수 있도록 각 끝단에 Loss를 추가를 했다.
+이렇게 Loss를 구현했을 때 장점이 Network pruning을 inference time에 할 수 있다는 것이다. 그래서 계산량이 많을 때나 적을 때, 즉 가용할 리소스가 많을 때나 적을 때나 예측을 수행할 수 있어야 한다는 것이다.
+가용할 리소스가 적다면 일단 **U-Net++L1**에서 결과를 출력하고 그 다음으로 **U-Net++L2**에서 결과를 출력하는 식이다.
+
+![](https://velog.velcdn.com/images/seonydg/post/25b3755b-bf95-469f-a24a-60febd18e2d2/image.png)
+
+
+**Loss Function**은 binary classification을 수행한다. 메디컬 이미지의 대부분의 데이터셋은 대부분 Yes/No로 구분되어 있다.
+Y는 label, Y hat은 모델 output을 말하고, 수식은 binary class에 대한 corss entropy식과 dice coefficient score(산술기하평균)의 합에 대한 N(이미지 수)를 가지고 Loss를 계산한다. 
+
+![](https://velog.velcdn.com/images/seonydg/post/ef7802a3-3742-43a3-bf83-1777de12c9e5/image.png)
+
+
+
+## Results
+
+Ground Truth에 대비하여 U-Net ++가 비교적 다른 비교군보다 성능적으로 좋아보이는 결과를 도출한다.
+
+![](https://velog.velcdn.com/images/seonydg/post/54d9ba66-6bf4-4e6c-b961-00fb23c5d824/image.png)
+
+아래는 Segmentation 결과를 IoU로 것인데 좋은 성능을 이끌어낸다고 볼 수 있다.
+하지만 DS(Deep Supervision)를 중간 단계에서 쓴 다는 것은, 최종 결과에서 뿐만 아니라 중간에서도 Loss를 계산한다는 것인데, 이것은 오히려 전체 Loss를 계산하는데 방해가 되는 부분임에도 불구하고 더 높은 결과가 도출 되는 것은 눈여겨 볼 만 하다.
+
+![](https://velog.velcdn.com/images/seonydg/post/dee6a54c-3481-4010-84bd-c22853666222/image.png)
+
+아래는 Network pruning에 대한 결과다.
+
+![](https://velog.velcdn.com/images/seonydg/post/fd62dacb-25ad-4afd-8b8e-59d1ee1db14c/image.png)
+
+---
+# 3. Mask R-CNN
 # Mask R-CNN(ICCV 2017)
 
 R-CNN의 마지막 논문으로, 기존의 classification, object detection과는 다른 task를 수행한다. Semantic Segmentation은 클래스별로 영역을 필셀별로 구분하는데, 같은 클래스는 같은 영역으로 되어 있는 반면, Instance Segmentation은 클래스별로도, 즉 하나의 객체당 Segmentation를 구별을 한다.
@@ -93,7 +160,7 @@ object detection에서 Faster R-CNN에 RoIAlign을 적용하면 Mask R-CNN과 �
 ![](https://velog.velcdn.com/images/seonydg/post/c2e5c3b0-8051-4be5-9c5b-6c02098b686a/image.png)
 
 ---
-# 3. DeepLabV3Plus
+# 4. DeepLabV3Plus
 # DeepLabV3Plus(ECCV 2018)
 
 아래의 그림과 같이 사람과 background를 구분하는 것처럼, 입력 이미지에서 의미를 갖는 영역을 필셀별로 구분해내는 작업을 Semantic Segmentation이라고 한다.
