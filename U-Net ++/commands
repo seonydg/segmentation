@@ -1,0 +1,9 @@
+preprocess
+python3 preprocess_dsb2018.py
+
+training
+python3 train.py --dataset dsb2018_96 --arch NestedUNet
+
+inference
+python3 val.py --name dsb2018_96_NestedUNet_woDS
+
